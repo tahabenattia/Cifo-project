@@ -55,16 +55,20 @@ class Population:
 
         self.individuals = []
 
-        # appending the population with individuals
-        for _ in range(size):
-            self.individuals.append(
-                Individual(
-                    size=kwargs["sol_size"],
-                    valid_set=kwargs["valid_set"],
-                    repetition=kwargs["repetition"]
+        if 'init_method' in kwargs:
+            init_method = kwargs['init_method']
+            for _ in range(size):
+                self.individuals.append(init_method())
+        else:
+            for _ in range(size):
+                self.individuals.append(
+                    Individual(
+                        size=kwargs["sol_size"],
+                        valid_set=kwargs["valid_set"],
+                        repetition=kwargs["repetition"]
+                    )
                 )
-            )
-    def evolve(self, gens, xo_prob, mut_prob, select, xo, mutate, elitism):
+    def evolve(self, gens, xo_prob1, xo_prob2, mut_prob1, mut_prob2, select, xo1, xo2, mutate1, mutate2, elitism):
         # gens = 100
         for i in range(gens):
             new_pop = []
@@ -80,17 +84,23 @@ class Population:
             while len(new_pop) < self.size:
                 # selection
                 parent1, parent2 = select(self), select(self)
-                # xo with prob
-                if random() < xo_prob:
-                    offspring1, offspring2 = xo(parent1, parent2)
+                # xo1 with prob1
+                if random() < xo_prob1:
+                    offspring1, offspring2 = xo1(parent1, parent2)
+                elif random() < (xo_prob1 + xo_prob2):
+                    offspring1, offspring2 = xo2(parent1, parent2)
                 # replication
                 else:
                     offspring1, offspring2 = parent1, parent2
                 # mutation with prob
-                if random() < mut_prob:
-                    offspring1 = mutate(offspring1)
-                if random() < mut_prob:
-                    offspring2 = mutate(offspring2)
+                if random() < mut_prob1:
+                    offspring1 = mutate1(offspring1)
+                elif random() < (mut_prob1 + mut_prob2):
+                    offspring1 = mutate2(offspring1)
+                if random() < mut_prob1:
+                    offspring2 = mutate1(offspring2)
+                elif random() < (mut_prob1 + mut_prob2):
+                    offspring2 = mutate2(offspring2)
 
                 new_pop.append(Individual(representation=offspring1))
                 if len(new_pop) < self.size:
