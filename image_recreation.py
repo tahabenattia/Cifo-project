@@ -155,10 +155,10 @@ Individual.get_fitness = lambda self: get_fitness(self, target_image_flatten, me
 # Choose initialization method
 init_method = lambda: random_pattern_initialization(image_shape=(300, 300))
 
-P = Population(size=100, optim="min", sol_size=target_image_flatten.shape[0],
+P = Population(size=200, optim="min", sol_size=target_image_flatten.shape[0],
                  valid_set=[i for i in range(256)], repetition = True, init_method=init_method)
 
-P.evolve(gens=50, xo_prob1=0.6, xo_prob2=0.4, mut_prob1=0.2, mut_prob2=0.15,
+P.evolve(gens=5000, xo_prob1=0.6, xo_prob2=0.4, mut_prob1=0.2, mut_prob2=0.15,
          select=tournament_sel, xo1=two_point_xo, xo2=block_uniform_crossover,
          mutate1=random_shape_mutation, mutate2=salt_and_pepper_mutation, elitism=True)
 
