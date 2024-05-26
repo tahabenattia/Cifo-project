@@ -1,116 +1,95 @@
-from random import randint
+from random import randint, sample, uniform, random
 import numpy as np
-from PIL import Image
-
-# def single_point_xo(parent1, parent2):
-#     """Perform single-point crossover.
-
-#     Args:
-#         parent1 (np.ndarray): First parent image array.
-#         parent2 (np.ndarray): Second parent image array.
-
-#     Returns:
-#         tuple: Two offspring image arrays.
-#     """
-#     height, width = parent1.shape
-#     xo_point = randint(1, width - 1)
-#     offspring1 = np.concatenate((parent1[:, :xo_point], parent2[:, xo_point:]), axis=1)
-#     offspring2 = np.concatenate((parent2[:, :xo_point], parent1[:, xo_point:]), axis=1)
-#     return offspring1, offspring2
+from scipy.ndimage import gaussian_filter
+from charles import Individual
 
 
-
-# def cycle_xo(p1, p2):
-#     """Implementation of cycle crossover.
-
-#     Args:
-#         p1 (Individual): First parent for crossover.
-#         p2 (Individual): Second parent for crossover.
-
-#     Returns:
-#         Individuals: Two offspring, resulting from the crossover.
-#     """
-#     # Offspring placeholders - None values make it easy to debug for errors
-#     offspring1 = [None] * len(p1)
-#     offspring2 = [None] * len(p1)
-
-#     # While there are still None values in offspring, get the first index of
-#     # None and start a "cycle" according to the cycle crossover method
-#     while None in offspring1:
-#         index = offspring1.index(None)
-#         val1 = p1[index]
-#         val2 = p2[index]
-
-#         # copy the cycle elements
-#         while val1 != val2:
-#             offspring1[index] = p1[index]
-#             offspring2[index] = p2[index]
-#             val2 = p2[index]
-#             index = p1.index(val2)
-
-#         # copy the rest
-#         for element in offspring1:
-#             if element is None:
-#                 index = offspring1.index(None)
-#                 if offspring1[index] is None:
-#                     offspring1[index] = p2[index]
-#                     offspring2[index] = p1[index]
-
-#     return offspring1, offspring2
-
-
-def single_point_xo(parent1, parent2):
-    """Perform single-point crossover.
+def two_point_xo(parent1, parent2):
+    """Implementation of two-point crossover.
 
     Args:
-        parent1 (np.ndarray): First parent image array.
-        parent2 (np.ndarray): Second parent image array.
+        parent1 (Individual): First parent for crossover.
+        parent2 (Individual): Second parent for crossover.
 
     Returns:
-        tuple: Two offspring image arrays.
+        Individuals: Two offspring, resulting from the crossover.
     """
-    height, width = parent1.shape
-    xo_point = randint(1, width - 1)
+
+    # Randomly select two crossover points
+    points = sorted(sample(range(len(parent1.representation)), 2))
+
+    # Convert to list, to be able to use + operations to concatenate lists
+    parent1 = list(parent1)
+    parent2 = list(parent2)
     
-    offspring1 = np.copy(parent1)
-    offspring2 = np.copy(parent2)
-    
-    offspring1[:, xo_point:] = parent2[:, xo_point:]
-    offspring2[:, xo_point:] = parent1[:, xo_point:]
-    
+    # Create the offspring by combining segments from both parents
+    offspring1 = parent1[:points[0]] + parent2[points[0]:points[1]] + parent1[points[1]:]
+    offspring2 = parent2[:points[0]] + parent1[points[0]:points[1]] + parent2[points[1]:]
+
+    # Convert back to numpy array, to ensure data consistency
+    offspring1 = np.array(offspring1).astype(np.uint8)
+    offspring2 = np.array(offspring2).astype(np.uint8)
+
     return offspring1, offspring2
 
 
-def cycle_xo(p1, p2):
-    """Perform cycle crossover.
+def smooth_two_point_crossover(parent1, parent2, sigma=1.0):
+    """Implementation of two-point crossover with smoothing for image recreation.
 
     Args:
-        p1 (np.ndarray): First parent array.
-        p2 (np.ndarray): Second parent array.
+        parent1 (Individual): First parent for crossover.
+        parent2 (Individual): Second parent for crossover.
+        sigma (float): Standard deviation for Gaussian kernel.
 
     Returns:
-        tuple: Two offspring arrays.
+        Individuals: Two offspring, resulting from the crossover.
     """
-    size = len(p1)
-    offspring1 = np.full(size, None)
-    offspring2 = np.full(size, None)
+    parent1_repr = np.array(parent1.representation).reshape((300, 300))
+    parent2_repr = np.array(parent2.representation).reshape((300, 300))
+    
+    points = sorted(sample(range(300), 2))
+    
+    offspring1_repr = np.copy(parent1_repr)
+    offspring2_repr = np.copy(parent2_repr)
+    
+    offspring1_repr[:, points[0]:points[1]] = parent2_repr[:, points[0]:points[1]]
+    offspring2_repr[:, points[0]:points[1]] = parent1_repr[:, points[0]:points[1]]
+    
+    # Apply Gaussian smoothing to the boundary regions
+    offspring1_repr = gaussian_filter(offspring1_repr, sigma=sigma)
+    offspring2_repr = gaussian_filter(offspring2_repr, sigma=sigma)
 
-    while None in offspring1:
-        # Start cycle
-        cycle_start = np.where(offspring1 == None)[0][0]
-        current_index = cycle_start
-        while True:
-            offspring1[current_index] = p1[current_index]
-            offspring2[current_index] = p2[current_index]
-            next_index = np.where(p1 == p2[current_index])[0][0]
-            if next_index == cycle_start:
-                break
-            current_index = next_index
+    offspring_1 = Individual(representation=offspring1_repr.flatten())
+    offspring_2 = Individual(representation=offspring2_repr.flatten())
+    
+    return offspring_1, offspring_2
 
-    # Fill the rest with other parent's genes
-    for i in range(size):
-        if offspring1[i] is None:
-            offspring1[i] = p2[i]
-            offspring2[i] = p1[i]
 
-    return offspring1, offspring2
+def block_uniform_crossover(parent1, parent2, block_size=10):
+    """Implementation of block-based uniform crossover for image recreation.
+
+    Args:
+        parent1 (Individual): First parent for crossover.
+        parent2 (Individual): Second parent for crossover.
+        block_size (int): Size of the blocks to swap.
+
+    Returns:
+        Individuals: Two offspring, resulting from the crossover.
+    """
+    parent1_repr = np.array(parent1.representation).reshape((300, 300))
+    parent2_repr = np.array(parent2.representation).reshape((300, 300))
+    
+    offspring1_repr = np.copy(parent1_repr)
+    offspring2_repr = np.copy(parent2_repr)
+    
+    for i in range(0, 300, block_size):
+        for j in range(0, 300, block_size):
+            if random() < 0.5:
+                offspring1_repr[i:i+block_size, j:j+block_size] = parent2_repr[i:i+block_size, j:j+block_size]
+                offspring2_repr[i:i+block_size, j:j+block_size] = parent1_repr[i:i+block_size, j:j+block_size]
+    
+    offspring_1 = Individual(representation=offspring1_repr.flatten())
+    offspring_2 = Individual(representation=offspring2_repr.flatten())
+    
+    return offspring_1, offspring_2
+
