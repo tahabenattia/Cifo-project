@@ -1,11 +1,13 @@
 from charles import Population, Individual
 from copy import copy
 from selection import fps, tournament_sel
-from mutation import swap_mutation, inversion_mutation, salt_and_pepper_mutation, edge_detection_mutation, random_shape_mutation
-from xo import cycle_xo, pmx, two_point_xo, block_uniform_crossover
+from mutation import inversion_mutation, salt_and_pepper_mutation, edge_detection_mutation, random_shape_mutation
+from xo import two_point_xo, block_uniform_crossover
 from skimage.metrics import structural_similarity as ssim
 from operator import attrgetter
 from random import random, randint
+import matplotlib.pyplot as plt
+
 
 from PIL import Image
 import os
@@ -158,9 +160,11 @@ init_method = lambda: random_pattern_initialization(image_shape=(300, 300))
 P = Population(size=200, optim="min", sol_size=target_image_flatten.shape[0],
                  valid_set=[i for i in range(256)], repetition = True, init_method=init_method)
 
-P.evolve(gens=5000, xo_prob1=0.6, xo_prob2=0.4, mut_prob1=0.2, mut_prob2=0.15,
-         select=tournament_sel, xo1=two_point_xo, xo2=block_uniform_crossover,
-         mutate1=random_shape_mutation, mutate2=salt_and_pepper_mutation, elitism=True)
+# Evolve population and get fitness values
+best_fitness_values, avg_fitness_values, diversity_values = P.evolve(
+    gens=5000, xo_prob1=0.6, xo_prob2=0.4, mut_prob1=0.2, mut_prob2=0.15,
+    select=tournament_sel, xo1=two_point_xo, xo2=block_uniform_crossover,
+    mutate1=random_shape_mutation, mutate2=salt_and_pepper_mutation, elitism=True)
 
 # Get the best individual
 if P.optim == "min":
@@ -173,3 +177,27 @@ elif P.optim == "max":
 display_and_save_image_pil(best_individual, (target_image.shape[0], target_image.shape[1]))
 
 
+# Plotting the graphs
+plt.figure(figsize=(12, 6))
+
+# Plot fitness values
+plt.subplot(1, 2, 1)
+plt.plot(range(1, 5001), best_fitness_values, label='Best Fitness')
+plt.plot(range(1, 5001), avg_fitness_values, label='Average Fitness')
+plt.xlabel('Generation')
+plt.ylabel('Fitness')
+plt.title('Evolution of Fitness')
+plt.legend()
+plt.grid(True)
+
+# Plot diversity values
+plt.subplot(1, 2, 2)
+plt.plot(range(1, 5001), diversity_values, label='Population Diversity')
+plt.xlabel('Generation')
+plt.ylabel('Diversity (Standard Deviation of Fitness)')
+plt.title('Diversity Over Generations')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
