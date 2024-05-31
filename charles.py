@@ -68,8 +68,12 @@ class Population:
                         repetition=kwargs["repetition"]
                     )
                 )
+    
     def evolve(self, gens, xo_prob1, xo_prob2, mut_prob1, mut_prob2, select, xo1, xo2, mutate1, mutate2, elitism):
-        # gens = 100
+        self.best_fitness_values = []
+        self.avg_fitness_values = []
+        self.diversity_values = []
+
         for i in range(gens):
             new_pop = []
 
@@ -78,8 +82,6 @@ class Population:
                     elite = copy(max(self.individuals, key=attrgetter('fitness')))
                 elif self.optim == "min":
                     elite = copy(min(self.individuals, key=attrgetter('fitness')))
-
-                #new_pop.append(elite)
 
             while len(new_pop) < self.size:
                 # selection
@@ -118,14 +120,23 @@ class Population:
                         new_pop.pop(new_pop.index(worst))
                         new_pop.append(elite)
 
-
             self.individuals = new_pop
+
+            # Log fitness values
+            best_fitness = min(individual.fitness for individual in self.individuals)
+            avg_fitness = sum(individual.fitness for individual in self.individuals) / len(self.individuals)
+            diversity = np.std([individual.fitness for individual in self.individuals])
+            
+            self.best_fitness_values.append(best_fitness)
+            self.avg_fitness_values.append(avg_fitness)
+            self.diversity_values.append(diversity)
 
             if self.optim == "max":
                 print(f"Best individual of gen #{i + 1}: {max(self, key=attrgetter('fitness'))}")
             elif self.optim == "min":
                 print(f"Best individual of gen #{i + 1}: {min(self, key=attrgetter('fitness'))}")
 
+        return self.best_fitness_values, self.avg_fitness_values, self.diversity_values
 
     def __len__(self):
         return len(self.individuals)
