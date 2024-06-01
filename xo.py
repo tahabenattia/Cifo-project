@@ -4,7 +4,7 @@ from scipy.ndimage import gaussian_filter
 from charles import Individual
 
 
-def two_point_xo(parent1, parent2):
+def two_point_xo(parent1, parent2, image_shape):
     """Implementation of two-point crossover.
 
     Args:
@@ -33,7 +33,7 @@ def two_point_xo(parent1, parent2):
     return offspring1, offspring2
 
 
-def smooth_two_point_crossover(parent1, parent2, sigma=1.0):
+def smooth_two_point_crossover(parent1, parent2, image_shape, sigma=1.0):
     """Implementation of two-point crossover with smoothing for image recreation.
 
     Args:
@@ -44,10 +44,10 @@ def smooth_two_point_crossover(parent1, parent2, sigma=1.0):
     Returns:
         Individuals: Two offspring, resulting from the crossover.
     """
-    parent1_repr = np.array(parent1.representation).reshape((300, 300))
-    parent2_repr = np.array(parent2.representation).reshape((300, 300))
+    parent1_repr = np.array(parent1.representation).reshape(image_shape)
+    parent2_repr = np.array(parent2.representation).reshape(image_shape)
     
-    points = sorted(sample(range(300), 2))
+    points = sorted(sample(range(image_shape[0]), 2))
     
     offspring1_repr = np.copy(parent1_repr)
     offspring2_repr = np.copy(parent2_repr)
@@ -65,7 +65,7 @@ def smooth_two_point_crossover(parent1, parent2, sigma=1.0):
     return offspring_1, offspring_2
 
 
-def block_uniform_crossover(parent1, parent2, block_size=10):
+def block_uniform_crossover(parent1, parent2, image_shape, block_size=10):
     """Implementation of block-based uniform crossover for image recreation.
 
     Args:
@@ -76,14 +76,15 @@ def block_uniform_crossover(parent1, parent2, block_size=10):
     Returns:
         Individuals: Two offspring, resulting from the crossover.
     """
-    parent1_repr = np.array(parent1.representation).reshape((300, 300))
-    parent2_repr = np.array(parent2.representation).reshape((300, 300))
+
+    parent1_repr = np.array(parent1.representation).reshape(image_shape)
+    parent2_repr = np.array(parent2.representation).reshape(image_shape)
     
     offspring1_repr = np.copy(parent1_repr)
     offspring2_repr = np.copy(parent2_repr)
     
-    for i in range(0, 300, block_size):
-        for j in range(0, 300, block_size):
+    for i in range(0, image_shape[0], block_size):
+        for j in range(0, image_shape[1], block_size):
             if random() < 0.5:
                 offspring1_repr[i:i+block_size, j:j+block_size] = parent2_repr[i:i+block_size, j:j+block_size]
                 offspring2_repr[i:i+block_size, j:j+block_size] = parent1_repr[i:i+block_size, j:j+block_size]
