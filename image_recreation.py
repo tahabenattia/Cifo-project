@@ -1,6 +1,6 @@
 from charles import Population, Individual
 from initialization import random_pattern_initialization
-from selection import tournament_sel
+from selection import tournament_sel, fps
 from mutation import inversion_mutation, salt_and_pepper_mutation, edge_detection_mutation, random_shape_mutation
 from xo import two_point_xo, block_uniform_crossover, smooth_two_point_crossover
 from evaluation import display_and_save_image_pil
@@ -50,7 +50,7 @@ https://medium.com/@sebastian.charmot/genetic-algorithm-for-image-recreation-4ca
 configurations = [
     {
     "fitness_method": 'mae',
-    "population_size": 100,
+    "population_size": 50,
     "init_method": 'random_pattern',
     "gens": 3000,
     "xo_prob1": 0.6,
@@ -58,6 +58,42 @@ configurations = [
     "mut_prob1": 0.2,
     "mut_prob2": 0.15,
     "select": tournament_sel,
+    "xo1": two_point_xo,
+    "xo2": block_uniform_crossover,
+    "mutate1": random_shape_mutation,
+    "mutate2": salt_and_pepper_mutation,
+    "elitism": False,
+    "image_shape": (200, 200),
+    "visualize_evolution": True
+    },
+    {
+    "fitness_method": 'mae',
+    "population_size": 50,
+    "init_method": 'random_pattern',
+    "gens": 3000,
+    "xo_prob1": 0.6,
+    "xo_prob2": 0.4,
+    "mut_prob1": 0.2,
+    "mut_prob2": 0.15,
+    "select": tournament_sel,
+    "xo1": two_point_xo,
+    "xo2": block_uniform_crossover,
+    "mutate1": random_shape_mutation,
+    "mutate2": salt_and_pepper_mutation,
+    "elitism": True,
+    "image_shape": (200, 200),
+    "visualize_evolution": True
+    },
+    {
+    "fitness_method": 'mae',
+    "population_size": 50,
+    "init_method": 'random_pattern',
+    "gens": 3000,
+    "xo_prob1": 0.6,
+    "xo_prob2": 0.4,
+    "mut_prob1": 0.2,
+    "mut_prob2": 0.15,
+    "select": fps,
     "xo1": two_point_xo,
     "xo2": block_uniform_crossover,
     "mutate1": random_shape_mutation,

@@ -1,0 +1,18 @@
+{
+    "fitness_method": "mae",
+    "population_size": "50",
+    "init_method": "random_pattern",
+    "gens": "3000",
+    "xo_prob1": "0.6",
+    "xo_prob2": "0.4",
+    "mut_prob1": "0.2",
+    "mut_prob2": "0.15",
+    "select": "tournament_sel",
+    "xo1": "two_point_xo",
+    "xo2": "block_uniform_crossover",
+    "mutate1": "random_shape_mutation",
+    "mutate2": "salt_and_pepper_mutation",
+    "elitism": "False",
+    "image_shape": "(200, 200)",
+    "visualize_evolution": "True"
+}
