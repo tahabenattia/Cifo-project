@@ -99,7 +99,7 @@ def display_and_save_image_pil(best_individual, image_shape, save_path='./data/o
     image.save(save_path)
 
 if __name__ == "__main__":
-    image_path = "./data/starry_night.jpg"
+    image_path = "./data/pokemon.png"
     # Load Target Image
     target_image = Image.open(image_path).convert("RGB")
     # Resize the image to 400x400 numpy array
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     init_method = lambda: random_pattern_initialization(image_shape=(300, 300))
 
     P = Population(size=200, optim="min", sol_size=target_image_flatten.shape[0],
-                    valid_set=[i for i in range(256)], repetition = True, init_method=init_method)
+                    valid_set=None, repetition = True, init_method=init_method)
 
     P.evolve(gens=10000, xo_prob1=0.45, xo_prob2=0.45, mut_prob1=0.03, mut_prob2=0.03,
             select=tournament_sel, xo1=two_point_xo, xo2=block_uniform_crossover,
